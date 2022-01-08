@@ -18,20 +18,60 @@ class CalculatorBrain {
         }
     }
 
-    func performOperation(_ operation: String?) {
-        guard let operation = operation else { return }
-
-        switch operation {
-        case "√":
-            accumulator = sqrt(result)
-        case "=":
-            break
-        default:
-            break
+    var operations: Dictionary<String,Operation> = [
+        "CE": Operation.Constant(0.0),
+        "√" : Operation.UnaryOperation(sqrt),
+        "*" : Operation.BinaryOperation({ $0 * $1 }),
+        "/" : Operation.BinaryOperation({ $0 / $1 }),
+        "+" : Operation.BinaryOperation({ $0 + $1 }),
+        "-" : Operation.BinaryOperation({ $0 - $1 }),
+        "=" : Operation.Equals,
+        "C" : Operation.Equal,
+    ]
+    
+    enum Operation {
+        case Constant(Double)
+        case UnaryOperation((Double) -> (Double))
+        case BinaryOperation((Double,Double) -> Double)
+        case Equals
+        case Equal
+    }
+    
+    func performOperation(symbol: String) {
+        if let operation = operations[symbol] {
+            switch operation {
+            case .Constant(let value) :
+                accumulator = value
+            case .UnaryOperation(let function):
+                accumulator = function(accumulator)
+            case .BinaryOperation(let function):
+                executePendingBinaryOperation()
+                pending = PendingBinaryOperationInfo(binaryFunction: function, firstOperand: accumulator)
+            case .Equals:
+               executePendingBinaryOperation()
+            case .Equal:
+                accumulator = 0.0
+                pending = nil
+            }
         }
+    }
+    
+    private func executePendingBinaryOperation() {
+        if pending != nil {
+            accumulator = pending!.binaryFunction(pending!.firstOperand, accumulator)
+            pending = nil
+        }
+    }
+    
+    private var pending: PendingBinaryOperationInfo?
+    
+    struct PendingBinaryOperationInfo {
+        var binaryFunction: (Double,Double) -> Double
+        var firstOperand: Double
     }
 
     func setOperand(_ value: Double) {
         accumulator = value
     }
 }
+
