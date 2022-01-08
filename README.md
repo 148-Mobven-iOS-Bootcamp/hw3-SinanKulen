@@ -1,4 +1,4 @@
-# HW3
+# Sinan KÜLEN - HW3
 
 1- Date class’ına 4 adet extension yazılacak
 - .day parametresiyle gün bilgisini döndüren
